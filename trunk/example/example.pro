@@ -21,6 +21,7 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     VideoWidget.h \
     global.h \
-    VideoThread.h
+    VideoToolbar.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    VideoToolbar.ui
