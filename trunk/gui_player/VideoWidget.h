@@ -38,6 +38,8 @@ public slots:
         w = clip->getWidth();
         h = clip->getHeight();
 
+        setLoop(true);
+
         clip->waitForCache();
         clip->pause();
 
@@ -88,7 +90,7 @@ protected:
             // To use OpenGL, just replace the following code in a QGLWidget
             QPainter painter(this);
             painter.fillRect(this->rect(), Qt::black);
-            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+            //painter.setRenderHint(QPainter::SmoothPixmapTransform); // quality
 
             // Reshape to better fit widget dimensions
             double widgetWidth = width();
@@ -145,6 +147,7 @@ public slots:
         {
             currentFrame = nextFrame;
             repaint();
+            emit setSliderValue(100 * (double(currentFrame->getFrameNumber()) / clip->getNumFrames()));
         }
     }
 
@@ -155,8 +158,10 @@ public slots:
 
     void seekVideo(int percent)
     {
+        clip->pause();
         double time = clip->getDuration() * (double(percent) / 100.0);
         clip->seek(time);
+
         repaint();
     }
 
@@ -179,4 +184,7 @@ private:
     int h;
 
     bool started;
+
+signals:
+    void setSliderValue(int);
 };

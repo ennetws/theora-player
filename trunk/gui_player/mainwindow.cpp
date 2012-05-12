@@ -17,8 +17,9 @@ MainWindow::MainWindow(QWidget *parent) :
     VideoToolbar * t = new VideoToolbar();
     ui->centralLayout->addWidget(t);
 
-    connect(t->ui->slider, SIGNAL(valueChanged(int)), v, SLOT(seekVideo(int)));
+    connect(t, SIGNAL(valueChanged(int)), v, SLOT(seekVideo(int)));
     connect(t->ui->playButton, SIGNAL(clicked()), v, SLOT(togglePlay()));
+    connect(v, SIGNAL(setSliderValue(int)), t->ui->slider, SLOT(setValue(int)));
 
     QString fileName = QFileDialog::getOpenFileName(this, "Open Video", "", "Video Files (*.ogg)");
 
