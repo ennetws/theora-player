@@ -18,6 +18,9 @@ win32:LIBS += $$PWD/../theoraplayer.lib $$PWD/../ogg.lib $$PWD/../vorbis.lib $$P
 SOURCES += main.cpp\
         mainwindow.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    VideoWidget.h \
+    global.h \
+    VideoThread.h
 
 FORMS    += mainwindow.ui
