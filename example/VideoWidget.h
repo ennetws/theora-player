@@ -5,13 +5,13 @@
 #include <QPaintEvent>
 #include <QThread>
 #include <QTimer>
+#include <QDebug>
 
 #include "TheoraVideoManager.h"
 #include "TheoraVideoClip.h"
 #include "TheoraVideoFrame.h"
 
 #include "global.h"
-#include "VideoThread.h"
 
 class VideoWidget: public QWidget{
     Q_OBJECT
@@ -24,23 +24,26 @@ public:
         currentFrame = NULL;
 
         this->setAutoFillBackground(false);
+        this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     }
 
+public slots:
     void loadVideo(QString fileName)
     {
         mgr = new TheoraVideoManager();
         clip = mgr->createVideoClip(qPrintable(fileName), TH_RGB, 16);
-        clip->setAutoRestart(1); // looping
-        clip->waitForCache();
+        mgr->setDefaultNumPrecachedFrames(32);
 
         img = new QImage(clip->getWidth(), clip->getHeight(), QImage::Format_RGB32);
-
         w = clip->getWidth();
         h = clip->getHeight();
 
+        clip->waitForCache();
+        clip->pause();
+
         QTimer *timer = new QTimer(this);
         connect(timer, SIGNAL(timeout()), SLOT(animate()));
-        timer->start(40);
+        timer->start(15);
     }
 
     void playVideo()
@@ -49,16 +52,20 @@ public:
         started = true;
     }
 
-public:
-    TheoraVideoManager * mgr;
-    TheoraVideoClip* clip;
-    TheoraVideoFrame* currentFrame;
+    void pauseVideo()
+    {
+        clip->pause();
+    }
 
-    QImage * img;
-    int w;
-    int h;
+    bool isPaused()
+    {
+        return clip->isPaused();
+    }
 
-    bool started;
+    void setLoop(bool isLooping)
+    {
+        clip->setAutoRestart(isLooping);
+    }
 
 protected:
 
@@ -78,12 +85,23 @@ protected:
                 img_data[pixelIdx+2] = data[i+2]; // b
             }
 
+            // To use OpenGL, just replace the following code in a QGLWidget
             QPainter painter(this);
-            painter.drawImage(QRect(this->rect()),*img);
+            painter.fillRect(this->rect(), Qt::black);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+            // Reshape to better fit widget dimensions
+            double widgetWidth = width();
+            double widgetHeight = height();
+            double aspectRatio = double(h) / w;
+            double newHeight = widgetWidth * aspectRatio;
+            QRect videoImageRect(0,(widgetHeight - newHeight) * 0.5,widgetWidth, newHeight);
+
+            painter.drawImage(videoImageRect,*img);
         }
     }
 
-    void updateFrame(float time_increase)
+    void updateTime(float time_increase)
     {
         if (started)
         {
@@ -99,34 +117,66 @@ public slots:
 
     void animate()
     {
-        TheoraVideoFrame* nextFrame = clip->getNextFrame();
-        if(nextFrame && nextFrame != currentFrame)
-        {
-            currentFrame = nextFrame;
-            repaint();
-        }
-
+        /* Timing related code */
         static unsigned long time = GetTickCount();
         unsigned long t = GetTickCount();
 
         float diff = (t-time) / 1000.0f;
         if (diff > 0.25f) diff=0.05f; // prevent spikes (usually happen on app load)
-        updateFrame(diff);
+        updateTime(diff);
 
+        time = t;
+
+        #ifdef _DEBUG
         // FPS stuff
         static unsigned int fps_timer = time, fps_counter = 0;
         if (t - fps_timer >= 250){
             //char title[512],debug[256]="";
-            //sprintf(title,"%d FPS; %s",fps_counter*4,debug);
+            qDebug() << "FPS " << fps_counter*4;
             fps_counter=0;
             fps_timer=t;
         }
         else fps_counter++;
+        #endif
 
-        time = t;
+        /* Refresh widget to draw frame */
+        nextFrame = clip->getNextFrame();
+        if(nextFrame && nextFrame != currentFrame)
+        {
+            currentFrame = nextFrame;
+            repaint();
+        }
+    }
+
+    int videoWidth() {return clip->getWidth();}
+    int videoHeight() {return clip->getHeight();}
+
+    void saveCurrentFrame(QString fileName = "snapshot.png") { img->save(fileName); }
+
+    void seekVideo(int percent)
+    {
+        double time = clip->getDuration() * (double(percent) / 100.0);
+        clip->seek(time);
+        repaint();
+    }
+
+    void togglePlay()
+    {
+        if(isPaused())
+            clip->play();
+        else
+            clip->pause();
     }
 
 private:
 
+    TheoraVideoManager *mgr;
+    TheoraVideoClip *clip;
+    TheoraVideoFrame *currentFrame, *nextFrame;
 
+    QImage * img;
+    int w;
+    int h;
+
+    bool started;
 };
