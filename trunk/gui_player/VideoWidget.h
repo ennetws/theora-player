@@ -43,10 +43,11 @@ public slots:
         clip->waitForCache();
         clip->pause();
 
-        QTimer *timer = new QTimer(this);
+        timer = new QTimer(this);
         connect(timer, SIGNAL(timeout()), SLOT(animate()));
         timer->start(15);
     }
+
 
     void playVideo()
     {
@@ -69,7 +70,14 @@ public slots:
         clip->setAutoRestart(isLooping);
     }
 
+    // QTimer state
+    void start()  { timer->start();   }
+    void stop()   { timer->stop();    }
+    bool stopped(){ return !timer->isActive(); }
+
 protected:
+
+    QTimer *timer;
 
     void paintEvent (QPaintEvent *)
     {
@@ -89,8 +97,8 @@ protected:
 
             // To use OpenGL, just replace the following code in a QGLWidget
             QPainter painter(this);
-            painter.fillRect(this->rect(), Qt::black);
-            //painter.setRenderHint(QPainter::SmoothPixmapTransform); // quality
+            painter.fillRect(this->rect(), Qt::white);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform); // quality
 
             // Reshape to better fit widget dimensions
             double widgetWidth = width();
@@ -129,7 +137,7 @@ public slots:
 
         time = t;
 
-        #ifdef _DEBUG
+        #ifdef _DEBUG_VIDEO
         // FPS stuff
         static unsigned int fps_timer = time, fps_counter = 0;
         if (t - fps_timer >= 250){
