@@ -12,7 +12,7 @@ TARGET = theora
 TEMPLATE = lib
 CONFIG += staticlib
 
-INCLUDEPATH += ../ogg ../vorbis
+INCLUDEPATH += $$PWD ../ogg ../vorbis
 
 SOURCES += \
     src/tokenize.c \

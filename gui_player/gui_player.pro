@@ -9,9 +9,9 @@ QT       += core gui
 TARGET = example
 TEMPLATE = app
 
-DEFINES += THEORAVIDEO_STATIC
+DEFINES += THEORAVIDEO_STATIC _DEBUG_VIDEO
 
-INCLUDEPATH += ../ogg ../vorbis ../theora ../theoraplayer/include/theoraplayer
+INCLUDEPATH += $$PWD ../ogg ../vorbis ../theora ../theoraplayer/include/theoraplayer
 
 win32:LIBS += $$PWD/../theoraplayer.lib $$PWD/../ogg.lib $$PWD/../vorbis.lib $$PWD/../theora.lib
 

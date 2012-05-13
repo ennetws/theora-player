@@ -12,7 +12,7 @@ TARGET = vorbis
 TEMPLATE = lib
 CONFIG += staticlib
 
-INCLUDEPATH += ../ogg
+INCLUDEPATH += $$PWD ../ogg
 
 SOURCES += \
     vorbis/src/window.c \
