@@ -90,9 +90,9 @@ protected:
             {
                 int pixelIdx = (i / 3) * 4;
 
-                img_data[pixelIdx+0] = data[i+0]; // r
+                img_data[pixelIdx+0] = data[i+2]; // r
                 img_data[pixelIdx+1] = data[i+1]; // g
-                img_data[pixelIdx+2] = data[i+2]; // b
+                img_data[pixelIdx+2] = data[i+0]; // b
             }
 
             // To use OpenGL, just replace the following code in a QGLWidget
@@ -101,11 +101,23 @@ protected:
             painter.setRenderHint(QPainter::SmoothPixmapTransform); // quality
 
             // Reshape to better fit widget dimensions
-            double widgetWidth = width();
-            double widgetHeight = height();
+            double newWidth = width(), newHeight = height();
             double aspectRatio = double(h) / w;
-            double newHeight = widgetWidth * aspectRatio;
-            QRect videoImageRect(0,(widgetHeight - newHeight) * 0.5,widgetWidth, newHeight);
+
+            double y = 0, x = 0;
+
+            if(width() < height())
+            {
+                newHeight = newWidth * aspectRatio;
+                y = (height() - newHeight) * 0.5;
+            }
+            else
+            {
+                newWidth = newHeight * (1.0 / aspectRatio);
+                x = (width() - newWidth) * 0.5;
+            }
+
+            QRect videoImageRect(x,y, newWidth, newHeight);
 
             painter.drawImage(videoImageRect,*img);
         }
